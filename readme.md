@@ -13,9 +13,12 @@
 - [go patterns]()
 - [go 代码规范 effective go](https://golang.org/doc/effective_go)
 - [go 代码规范 effective go 的补充](https://github.com/golang/go/wiki/CodeReviewComments)
-
+- [go 语言规范](https://golang.org/ref/spec)
+- [go example](https://gobyexample.com/)
+- [learn go by test](https://quii.gitbook.io/learn-go-with-tests/)
 ## 中文资料
 
 - [go 代码规范 effective go 中文版](https://learnku.com/docs/effective-go/2020)
 - [draveness Go 语言设计与实现](https://draveness.me/golang/)
 - [飞雪无情的博客](https://www.flysnow.org/)
+- [learn go by test](https://quii.gitbook.io/learn-go-with-tests/)
