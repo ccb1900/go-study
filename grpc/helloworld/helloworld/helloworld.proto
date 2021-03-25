@@ -1,0 +1,22 @@
+
+syntax = "proto3";
+
+option go_package="ppp/grpc/helloworld";
+
+package helloworld;
+
+// 打招呼服务定义
+service Greeter {
+  // 发送打招呼
+  rpc SayHello(HelloRequest) returns (HelloReply) {}
+}
+
+// 包含用户名的请求消息
+message HelloRequest {
+  string name = 1;
+}
+
+// 包含问候语的响应
+message HelloReply {
+  string message = 1;
+}
