@@ -12,7 +12,7 @@
 - [go web]()
 - [go patterns]()
 - [go 代码规范 effective go](https://golang.org/doc/effective_go)
-- [go 代码规范 effective go 的补充](https://github.com/golang/go/wiki/CodeReviewComments)
+- [go 代码规范 effective go 的补充 CodeReviewComments](https://github.com/golang/go/wiki/CodeReviewComments)
 - [go 语言规范](https://golang.org/ref/spec)
 - [go example](https://gobyexample.com/)
 - [learn go by test](https://quii.gitbook.io/learn-go-with-tests/)
