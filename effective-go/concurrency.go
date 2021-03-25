@@ -1,19 +1,23 @@
 package effective_go
 
+import (
+	"fmt"
+	"sort"
+)
+
 func incr() {
 
 }
 
 func main() {
-	cnt := 0
-	c := make(chan int)
-	c <- cnt
-	for i := 0; i < 10; i++ {
-		go func() {
-			cnt = <-c
-			cnt++
-			c <- cnt
-		}()
-	}
+	l := []int{1, 2, 3, 4}
+
+	c := make(chan bool)
+	go func() {
+		sort.Ints(l)
+		c <- true
+	}()
+	<-c
+	fmt.Println(l)
 
 }
