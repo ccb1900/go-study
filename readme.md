@@ -24,3 +24,6 @@
 - [draveness Go 语言设计与实现](https://draveness.me/golang/)
 - [飞雪无情的博客](https://www.flysnow.org/)
 - [learn go by test](https://quii.gitbook.io/learn-go-with-tests/)
+- [gocn 专栏/](https://c.gocn.vip/)
+- [Concurrency in Go]()
+- [go 语言原本](https://golang.design/under-the-hood/)
