@@ -56,16 +56,19 @@ func (s *Server) Run() {
 			if len(wl.Key) > 0 {
 				switch wl.Key[0] {
 				case "get":
-					s.Resp(wl.W, packet.OkLine("\""+s.Store[wl.Key[1]].Value+"\""))
+					go func(ss string) {
+						s.Resp(wl.W, packet.OkLine("\""+ss+"\""))
+					}(s.Store[wl.Key[1]].Value)
+
 				case "command":
-					s.Resp(wl.W, packet.OkLine("OK"))
+					go s.Resp(wl.W, packet.OkLine("OK"))
 				case "config":
-					s.Resp(wl.W, packet.ErrLine("OK"))
+					go s.Resp(wl.W, packet.ErrLine("OK"))
 				default:
-					s.Resp(wl.W, packet.OkLine("OK"))
+					go s.Resp(wl.W, packet.OkLine("OK"))
 				}
 			} else {
-				s.Resp(wl.W, packet.OkLine("OK"))
+				go s.Resp(wl.W, packet.OkLine("OK"))
 			}
 
 			exception.Debug("fetch client")
