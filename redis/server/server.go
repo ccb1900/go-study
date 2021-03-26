@@ -190,13 +190,12 @@ func NewServer(address string) *Server {
 	s.Listener = l
 	s.Clients = make(map[int]*Client, 128)
 	s.RemoveList = make(chan int, 128)
-	s.ObjectList = make(chan *Object, 1024)
+	s.ObjectList = make(chan []string, 1024)
 	s.WriteList = make(chan *Reply, 1024)
 	s.ClientList = make(chan *Client, 128)
 	s.DBList = make([]*DB, 16)
 	for i := 0; i < 16; i++ {
 		s.DBList[i] = NewDB(i)
 	}
-	s.DBNum = 0
 	return s
 }

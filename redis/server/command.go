@@ -1,4 +1,4 @@
 package server
 
-type name struct {
+type Command struct {
 }

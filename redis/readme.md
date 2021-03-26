@@ -1,0 +1,21 @@
+# redis server with golang
+
+- 命令
+  - set
+  - get
+  - config
+  - ping
+  - pong
+  - lpush
+  - lpop
+  - hash
+- 客户端
+- 服务器
+- 响应
+- 管道
+- 数据库
+- 持久化
+  - aof
+  - rdb
+- 对象
+- 复制
