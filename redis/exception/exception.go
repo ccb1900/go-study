@@ -5,11 +5,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func Report(err error, s string) {
-	log.Errorf(s+" %v", err)
-}
+const dev = true
 
-const dev = false
+func Report(err error, s string) {
+	if dev {
+		log.Errorf(s+" %v", err)
+	}
+}
 
 func Debug(a ...interface{}) {
 	if dev {

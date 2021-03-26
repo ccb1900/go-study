@@ -12,14 +12,22 @@ import (
 )
 
 type Server struct {
+	DBList     []*DB
 	Address    string
 	Listener   net.Listener
 	Clients    map[int]*Client
-	Store      map[string]*Object
 	RemoveList chan int
-	ObjectList chan *Object
+	ObjectList chan []string
 	WriteList  chan *Reply
 	ClientList chan *Client
+}
+
+func (s *Server) SetKey(dbNum int, k string, v *Object) {
+	s.DBList[dbNum].Store[k] = v
+}
+
+func (s *Server) GetObject(dbNum int, k string) *Object {
+	return s.DBList[dbNum].Store[k]
 }
 
 // 运行server
@@ -49,7 +57,11 @@ func (s *Server) Run() {
 			delete(s.Clients, rl)
 			exception.Debug("delete client")
 		case ol := <-s.ObjectList:
-			s.Store[ol.Key] = ol
+			switch strings.ToLower(ol[0]) {
+			case "select":
+				s.DBNum, _ = strconv.Atoi(ol[1])
+			}
+			s.SetKey(ol.Key, ol)
 			exception.Debug("storage client")
 		case wl := <-s.WriteList:
 			exception.Debug("resp::")
@@ -58,7 +70,7 @@ func (s *Server) Run() {
 				case "get":
 					go func(ss string) {
 						s.Resp(wl.W, packet.OkLine("\""+ss+"\""))
-					}(s.Store[wl.Key[1]].Value)
+					}(s.GetObject(wl.Key[1]).Value)
 
 				case "command":
 					go s.Resp(wl.W, packet.OkLine("OK"))
@@ -92,22 +104,23 @@ func (s *Server) handle(c *Client) {
 			s.closeClient(c)
 			break
 		}
-		go func(command []string) {
-			exception.Debug("解析出来的命令", command)
-			s.handleCommand(w, command)
-		}(command)
+		go s.handleCommand(w, command)
 	}
 }
 func (s *Server) closeClient(c *Client) {
 	s.RemoveList <- c.Id
 }
 func (s *Server) handleCommand(w *bufio.Writer, commands []string) {
+	exception.Debug("解析出来的命令", commands)
 	// 很多个协程可以写map
 	switch strings.ToLower(commands[0]) {
 	case "set":
 		s.ObjectList <- NewObject(commands[1], commands[2])
 		s.WriteList <- NewReply(make([]string, 0), w)
 		return
+	case "select":
+		s.ObjectList <- NewObject(commands[1], "")
+		s.WriteList <- NewReply(make([]string, 0), w)
 	case "get":
 		s.WriteList <- NewReply(commands, w)
 		return
@@ -175,11 +188,15 @@ func NewServer(address string) *Server {
 		log.Fatalf("start %v", err)
 	}
 	s.Listener = l
-	s.Store = make(map[string]*Object, 2048)
-	s.Clients = make(map[int]*Client)
+	s.Clients = make(map[int]*Client, 128)
 	s.RemoveList = make(chan int, 128)
 	s.ObjectList = make(chan *Object, 1024)
 	s.WriteList = make(chan *Reply, 1024)
 	s.ClientList = make(chan *Client, 128)
+	s.DBList = make([]*DB, 16)
+	for i := 0; i < 16; i++ {
+		s.DBList[i] = NewDB(i)
+	}
+	s.DBNum = 0
 	return s
 }
