@@ -175,7 +175,7 @@ func NewServer(address string) *Server {
 		log.Fatalf("start %v", err)
 	}
 	s.Listener = l
-	s.Store = make(map[string]*Object)
+	s.Store = make(map[string]*Object, 2048)
 	s.Clients = make(map[int]*Client)
 	s.RemoveList = make(chan int, 128)
 	s.ObjectList = make(chan *Object, 1024)
