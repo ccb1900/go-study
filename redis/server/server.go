@@ -19,11 +19,11 @@ type Server struct {
 	RemoveList chan int
 	ObjectList chan *Object
 	WriteList  chan *Reply
+	ClientList chan *Client
 }
 
 // 运行server
 func (s *Server) Run() {
-	clientChan := make(chan *Client, 100)
 	go func() {
 		for {
 			exception.Debug("server is waiting...")
@@ -35,14 +35,14 @@ func (s *Server) Run() {
 			clientId := snowflake.GetId()
 			client := NewClient(c, clientId)
 			go func(client *Client) {
-				clientChan <- client
+				s.ClientList <- client
 			}(client)
 			go s.handle(client)
 		}
 	}()
 	for {
 		select {
-		case cl := <-clientChan:
+		case cl := <-s.ClientList:
 			s.Clients[cl.Id] = cl
 			exception.Debug("range client")
 		case rl := <-s.RemoveList:
@@ -177,8 +177,9 @@ func NewServer(address string) *Server {
 	s.Listener = l
 	s.Store = make(map[string]*Object)
 	s.Clients = make(map[int]*Client)
-	s.RemoveList = make(chan int)
-	s.ObjectList = make(chan *Object)
-	s.WriteList = make(chan *Reply)
+	s.RemoveList = make(chan int, 128)
+	s.ObjectList = make(chan *Object, 1024)
+	s.WriteList = make(chan *Reply, 1024)
+	s.ClientList = make(chan *Client, 128)
 	return s
 }
