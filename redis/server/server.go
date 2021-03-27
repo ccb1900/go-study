@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"errors"
 	log "github.com/sirupsen/logrus"
 	"net"
 	"ppp/redis/exception"
@@ -12,22 +13,27 @@ import (
 )
 
 type Server struct {
-	DBList     []*DB
-	Address    string
-	Listener   net.Listener
-	Clients    map[int]*Client
-	RemoveList chan int
-	ObjectList chan []string
-	WriteList  chan *Reply
-	ClientList chan *Client
+	DBList      []*DB
+	Address     string
+	Listener    net.Listener
+	Clients     map[int]*Client
+	RemoveList  chan int
+	CommandList chan *Command
+	WriteList   chan *Reply
+	ClientList  chan *Client
 }
 
 func (s *Server) SetKey(dbNum int, k string, v *Object) {
 	s.DBList[dbNum].Store[k] = v
 }
 
-func (s *Server) GetObject(dbNum int, k string) *Object {
-	return s.DBList[dbNum].Store[k]
+func (s *Server) GetObject(dbNum int, k string) (*Object, error) {
+	if v, exit := s.DBList[dbNum].Store[k]; exit {
+		return v, nil
+	}
+
+	return nil, errors.New("key not exists")
+
 }
 
 // 运行server
@@ -56,34 +62,27 @@ func (s *Server) Run() {
 		case rl := <-s.RemoveList:
 			delete(s.Clients, rl)
 			exception.Debug("delete client")
-		case ol := <-s.ObjectList:
-			switch strings.ToLower(ol[0]) {
-			case "select":
-				s.DBNum, _ = strconv.Atoi(ol[1])
-			}
-			s.SetKey(ol.Key, ol)
-			exception.Debug("storage client")
-		case wl := <-s.WriteList:
-			exception.Debug("resp::")
-			if len(wl.Key) > 0 {
-				switch wl.Key[0] {
-				case "get":
-					go func(ss string) {
-						s.Resp(wl.W, packet.OkLine("\""+ss+"\""))
-					}(s.GetObject(wl.Key[1]).Value)
-
-				case "command":
-					go s.Resp(wl.W, packet.OkLine("OK"))
-				case "config":
-					go s.Resp(wl.W, packet.ErrLine("OK"))
-				default:
-					go s.Resp(wl.W, packet.OkLine("OK"))
-				}
+		case ol := <-s.CommandList:
+			if !ol.validate() {
+				go s.Resp(ol.Writer, packet.ErrLine("ERR syntax error"))
 			} else {
-				go s.Resp(wl.W, packet.OkLine("OK"))
+				switch strings.ToLower(ol.Commands[0]) {
+				case "set":
+					s.SetKey(ol.DbNum, ol.Commands[1], NewObject(ol.DbNum, ol.Commands[1], ol.Commands[2]))
+					go s.Resp(ol.Writer, packet.OkLine("OK"))
+				case "get":
+					if o, err := s.GetObject(ol.DbNum, ol.Commands[1]); err != nil {
+						go s.Resp(ol.Writer, packet.OkLine("(nil)"))
+					} else {
+						go s.Resp(ol.Writer, packet.GetString(o.Value))
+					}
+
+				default:
+					go s.Resp(ol.Writer, packet.OkLine("OK"))
+				}
+				exception.Debug("storage client")
 			}
 
-			exception.Debug("fetch client")
 		}
 	}
 }
@@ -101,36 +100,18 @@ func (s *Server) handle(c *Client) {
 		// 读完一次发送的包
 		if len(command) == 0 {
 			exception.Debug("客户端断开" + c.Conn.RemoteAddr().String())
-			s.closeClient(c)
+			go s.closeClient(c)
 			break
 		}
-		go s.handleCommand(w, command)
+		go s.handleCommand(w, command, c)
 	}
 }
 func (s *Server) closeClient(c *Client) {
 	s.RemoveList <- c.Id
 }
-func (s *Server) handleCommand(w *bufio.Writer, commands []string) {
+func (s *Server) handleCommand(w *bufio.Writer, commands []string, c *Client) {
 	exception.Debug("解析出来的命令", commands)
-	// 很多个协程可以写map
-	switch strings.ToLower(commands[0]) {
-	case "set":
-		s.ObjectList <- NewObject(commands[1], commands[2])
-		s.WriteList <- NewReply(make([]string, 0), w)
-		return
-	case "select":
-		s.ObjectList <- NewObject(commands[1], "")
-		s.WriteList <- NewReply(make([]string, 0), w)
-	case "get":
-		s.WriteList <- NewReply(commands, w)
-		return
-	case "command":
-		s.WriteList <- NewReply(make([]string, 0), w)
-		return
-	default:
-		s.WriteList <- NewReply(make([]string, 0), w)
-		return
-	}
+	s.CommandList <- NewCommand(commands, c.DBNum, w)
 }
 
 // 根据协议解析命令
@@ -190,7 +171,7 @@ func NewServer(address string) *Server {
 	s.Listener = l
 	s.Clients = make(map[int]*Client, 128)
 	s.RemoveList = make(chan int, 128)
-	s.ObjectList = make(chan []string, 1024)
+	s.CommandList = make(chan *Command, 1024)
 	s.WriteList = make(chan *Reply, 1024)
 	s.ClientList = make(chan *Client, 128)
 	s.DBList = make([]*DB, 16)
