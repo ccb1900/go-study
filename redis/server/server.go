@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"net"
 	"os"
 	"ppp/redis/exception"
@@ -98,41 +99,41 @@ func (s *Server) Run() {
 			}(aof)
 		case ol := <-s.CommandList:
 			if !ol.validate() {
-				go s.Resp(ol.Writer, packet.ErrLine("ERR syntax error"))
+				go s.Resp(ol.Client.BufWriter, packet.ErrLine("ERR syntax error"))
 			} else {
 				switch strings.ToLower(ol.Commands[0]) {
 				case "set":
 					s.SetKey(ol.Client.DBNum, ol.Commands[1], NewObject(ol.Client.DBNum, ol.Commands[1], ol.Commands[2]))
-					go s.Resp(ol.Writer, packet.OkLine("OK"))
+					go s.Resp(ol.Client.BufWriter, packet.OkLine("OK"))
 					go func(ccc string) {
 						s.Aof.AofBuf <- ccc
 					}(ol.RawCommand)
 				case "get":
 					if o, err := s.GetObject(ol.Client.DBNum, ol.Commands[1]); err != nil {
-						go s.Resp(ol.Writer, packet.OkLine("(nil)"))
+						go s.Resp(ol.Client.BufWriter, packet.OkLine("(nil)"))
 					} else {
-						go s.Resp(ol.Writer, packet.GetString(o.Value))
+						go s.Resp(ol.Client.BufWriter, packet.GetString(o.Value))
 					}
 				case "select":
 					ol.Client.DBNum, _ = strconv.Atoi(ol.Commands[1])
-					go s.Resp(ol.Writer, packet.OkLine("OK"))
+					go s.Resp(ol.Client.BufWriter, packet.OkLine("OK"))
 					go func(ccc string) {
 						s.Aof.AofBuf <- ccc
 					}(ol.RawCommand)
 				case "ping":
 					if len(ol.Commands) == 2 {
-						go s.Resp(ol.Writer, packet.GetString(ol.Commands[1]))
+						go s.Resp(ol.Client.BufWriter, packet.GetString(ol.Commands[1]))
 					} else {
-						go s.Resp(ol.Writer, packet.OkLine("PONG"))
+						go s.Resp(ol.Client.BufWriter, packet.OkLine("PONG"))
 					}
 				case "client":
 					if ol.Commands[1] == "list" {
-						go s.Resp(ol.Writer, packet.OkLine(fmt.Sprintf("id=%d addr=%s db=%d", ol.Client.Id, ol.Client.Conn.RemoteAddr().String(), ol.Client.DBNum)))
+						go s.Resp(ol.Client.BufWriter, packet.OkLine(fmt.Sprintf("id=%d addr=%s db=%d", ol.Client.Id, ol.Client.Conn.RemoteAddr().String(), ol.Client.DBNum)))
 					} else {
-						go s.Resp(ol.Writer, packet.ErrLine(fmt.Sprintf("ERR Unknown subcommand or wrong number of arguments for '%s'. Try CLIENT HELP", ol.Commands[1])))
+						go s.Resp(ol.Client.BufWriter, packet.ErrLine(fmt.Sprintf("ERR Unknown subcommand or wrong number of arguments for '%s'. Try CLIENT HELP", ol.Commands[1])))
 					}
 				default:
-					go s.Resp(ol.Writer, packet.OkLine("OK"))
+					go s.Resp(ol.Client.BufWriter, packet.OkLine("OK"))
 				}
 
 				exception.Debug("storage client")
@@ -150,27 +151,26 @@ func (s *Server) handle(c *Client) {
 		exception.Debug("read start")
 		// 等待连接继续发命令
 		// 开始读命令
-		command, rawCommand, err := c.ParsePacket()
-
+		cd, err := c.ParsePacket()
+		if err == io.EOF {
+			s.RemoveList <- c.Id
+			break
+		}
 		if err != nil {
 			s.Failed(c.BufWriter, err, err.Error())
 		}
 		// 读完一次发送的包
-		if len(command) == 0 {
-			exception.Debug("客户端断开" + c.Conn.RemoteAddr().String())
-			go s.closeClient(c)
-			break
-		}
-		go s.handleCommand(c.BufWriter, command, rawCommand, c)
+		//if len(command) == 0 {
+		//	exception.Debug("客户端断开" + c.Conn.RemoteAddr().String())
+		//	go s.closeClient(c)
+		//	break
+		//}
+		s.CommandList <- cd
 	}
 }
 func (s *Server) closeClient(c *Client) {
 	s.RemoveList <- c.Id
 	c.Conn.Close()
-}
-func (s *Server) handleCommand(w *bufio.Writer, commands []string, rawCommand string, c *Client) {
-	exception.Debug("解析出来的命令", commands)
-	s.CommandList <- NewCommand(c, commands, rawCommand, w)
 }
 
 // 成功响应
@@ -186,6 +186,6 @@ func (s *Server) Resp(w *bufio.Writer, st string) {
 
 // 返回错误信息
 func (s *Server) Failed(w *bufio.Writer, err error, st string) {
-	s.Resp(w, packet.ErrLine(st))
 	exception.Report(err, st)
+	s.Resp(w, packet.ErrLine(st))
 }

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"ppp/redis/exception"
 	"ppp/redis/packet"
@@ -27,16 +28,19 @@ func NewClient(c net.Conn, id int) *Client {
 	return client
 }
 
-func (c *Client) ParsePacket() ([]string, string, error) {
+func (c *Client) ParsePacket() (*Command, error) {
 	line, isPrefix, err := c.BufReader.ReadLine()
 	exception.Debug(line, isPrefix, err)
+	if err == io.EOF || err != nil {
+		return nil, err
+	}
 	rawCommand := ""
 	pc := 0
 	if strings.HasPrefix(string(line), "*") {
 		pc, err = strconv.Atoi(string(line[1:]))
 		rawCommand += string(line) + packet.EL
 		if err != nil {
-			return nil, "", errors.New(fmt.Sprintf("unknown command `%s`, with args beginning with: ", string(line)))
+			return nil, errors.New(fmt.Sprintf("unknown command `%s`, with args beginning with: ", string(line)))
 		}
 	}
 	// 记录命令
@@ -44,17 +48,17 @@ func (c *Client) ParsePacket() ([]string, string, error) {
 	for i := 0; i < pc; i++ {
 		line, isPrefix, err = c.BufReader.ReadLine()
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
 		rawCommand += string(line) + packet.EL
 		if strings.HasPrefix(string(line), "$") {
 			line, isPrefix, err = c.BufReader.ReadLine()
 			if err != nil {
-				return nil, "", err
+				return nil, err
 			}
 			rawCommand += string(line) + packet.EL
 			command = append(command, string(line))
 		}
 	}
-	return command, rawCommand, nil
+	return NewCommand(c, command, rawCommand), nil
 }
