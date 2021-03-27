@@ -17,6 +17,7 @@ import (
 
 type Server struct {
 	DBList      []*DB
+	DbNum       int
 	Address     string
 	Listener    net.Listener
 	Clients     map[int]*Client
@@ -45,6 +46,7 @@ func NewServer(address string) *Server {
 	s.ClientList = make(chan *Client, 128)
 	s.DBList = make([]*DB, 16)
 	s.Aof = NewAof()
+	s.DbNum = 16
 
 	for i := 0; i < 16; i++ {
 		s.DBList[i] = NewDB(i)
@@ -115,7 +117,8 @@ func (s *Server) Run() {
 						go s.Resp(ol.Client.BufWriter, packet.GetString(o.Value))
 					}
 				case "select":
-					ol.Client.DBNum, _ = strconv.Atoi(ol.Commands[1])
+					dbNum, _ := strconv.Atoi(ol.Commands[1])
+					ol.Client.DBNum = dbNum % s.DbNum
 					go s.Resp(ol.Client.BufWriter, packet.OkLine("OK"))
 					go func(ccc string) {
 						s.Aof.AofBuf <- ccc
@@ -158,6 +161,8 @@ func (s *Server) handle(c *Client) {
 		}
 		if err != nil {
 			s.Failed(c.BufWriter, err, err.Error())
+		} else {
+			s.CommandList <- cd
 		}
 		// 读完一次发送的包
 		//if len(command) == 0 {
@@ -165,7 +170,7 @@ func (s *Server) handle(c *Client) {
 		//	go s.closeClient(c)
 		//	break
 		//}
-		s.CommandList <- cd
+
 	}
 }
 func (s *Server) closeClient(c *Client) {
