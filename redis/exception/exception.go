@@ -5,7 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const dev = true
+const dev = false
 
 func Report(err error, s string) {
 	if dev {

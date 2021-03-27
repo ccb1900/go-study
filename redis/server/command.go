@@ -3,19 +3,21 @@ package server
 import "bufio"
 
 type Command struct {
-	Commands []string
-	DbNum    int
-	Writer   *bufio.Writer
+	Commands   []string
+	Writer     *bufio.Writer
+	Client     *Client
+	RawCommand string
 }
 
-func NewCommand(commands []string, dbNum int, writer *bufio.Writer) *Command {
+func NewCommand(cc *Client, commands []string, rawCommand string, writer *bufio.Writer) *Command {
 	return &Command{
-		Commands: commands,
-		DbNum:    dbNum,
-		Writer:   writer,
+		Commands:   commands,
+		Writer:     writer,
+		Client:     cc,
+		RawCommand: rawCommand,
 	}
 }
 
 func (c *Command) validate() bool {
-	return false
+	return true
 }
