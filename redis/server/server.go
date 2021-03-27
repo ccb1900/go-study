@@ -93,12 +93,7 @@ func (s *Server) Run() {
 			delete(s.Clients, rl)
 			exception.Debug("delete client")
 		case aof := <-s.Aof.AofBuf:
-			go func(aof string) {
-				//log.Println(f, e)
-				s.Aof.File.Write([]byte(aof))
-				//log.Println(n, e)
-				s.Aof.File.Sync()
-			}(aof)
+			go s.Aof.Save(aof)
 		case ol := <-s.CommandList:
 			if !ol.validate() {
 				go s.Resp(ol.Client.BufWriter, packet.ErrLine("ERR syntax error"))

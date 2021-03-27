@@ -14,3 +14,8 @@ func NewAof() *Aof {
 		AofBuf: make(chan string, 1024),
 	}
 }
+
+func (a *Aof) Save(s string) {
+	a.File.Write([]byte(s))
+	a.File.Sync()
+}
