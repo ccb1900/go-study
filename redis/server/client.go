@@ -62,3 +62,7 @@ func (c *Client) ParsePacket() (*Command, error) {
 	}
 	return NewCommand(c, command, rawCommand), nil
 }
+
+func (c *Client) close() {
+	c.Conn.Close()
+}
