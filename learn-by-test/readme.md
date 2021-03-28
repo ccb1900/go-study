@@ -22,3 +22,7 @@
 - io和排序
 - 命令行和项目结构
 - time
+
+## 其他
+
+[英文版是最完整的](https://github.com/quii/learn-go-with-tests?utm_source=gold_browser_extension)
