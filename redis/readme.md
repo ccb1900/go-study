@@ -30,3 +30,10 @@ pprof： http://localhost:1267/debug/pprof/
 ```
 go tool pprof -http :9090 http://127.0.0.1:1267/debug/pprof/heap
 ```
+
+
+显示文档
+
+```
+ godoc -http=:11238
+```
