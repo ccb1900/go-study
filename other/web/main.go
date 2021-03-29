@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"go-study/other/web/controller"
+	"go-study/other/web/framework/cache"
+	"go-study/other/web/framework/logger"
+	"go-study/other/web/middleware"
 	"gorm.io/gorm"
-	"ppp/other/web/controller"
-	"ppp/other/web/framework/cache"
-	"ppp/other/web/framework/logger"
-	"ppp/other/web/middleware"
 )
 
 type App struct {

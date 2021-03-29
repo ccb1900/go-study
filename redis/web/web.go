@@ -2,7 +2,7 @@ package web
 
 import (
 	"github.com/gin-gonic/gin"
-	"ppp/redis/server"
+	"go-study/redis/server"
 )
 
 type Server struct {

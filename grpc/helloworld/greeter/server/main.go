@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	log "github.com/sirupsen/logrus"
+	"go-study/grpc/helloworld/greeter/exception"
+	"go-study/grpc/helloworld/helloworld"
 	"google.golang.org/grpc"
 	"net"
-	"ppp/grpc/helloworld/greeter/exception"
-	"ppp/grpc/helloworld/helloworld"
 )
 
 const port = ":12347"

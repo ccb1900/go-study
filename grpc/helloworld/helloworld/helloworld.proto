@@ -1,7 +1,7 @@
 
 syntax = "proto3";
 
-option go_package="ppp/grpc/helloworld";
+option go_package="go-study/grpc/helloworld";
 
 package helloworld;
 

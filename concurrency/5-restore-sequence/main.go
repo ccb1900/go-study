@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"ppp/util"
+	"go-study/util"
 )
 
 type Message struct {

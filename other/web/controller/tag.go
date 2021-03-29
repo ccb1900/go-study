@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	app2 "ppp/other/web/framework/app"
+	app2 "go-study/other/web/framework/app"
 )
 
 type Tag struct {

@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	log "github.com/sirupsen/logrus"
+	"go-study/grpc/helloworld/helloworld"
 	"google.golang.org/grpc"
 	"os"
-	"ppp/grpc/helloworld/helloworld"
 	"time"
 )
 

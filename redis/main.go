@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"go-study/redis/server"
+	"go-study/redis/web"
 	"log"
 	"net/http"
-	"ppp/redis/server"
-	"ppp/redis/web"
 	"sync"
 )
 import _ "net/http/pprof"

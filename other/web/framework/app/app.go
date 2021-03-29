@@ -2,9 +2,9 @@ package app
 
 import (
 	"github.com/gin-gonic/gin"
+	"go-study/other/web/framework/cache"
+	"go-study/other/web/framework/logger"
 	"gorm.io/gorm"
-	"ppp/other/web/framework/cache"
-	"ppp/other/web/framework/logger"
 	"sync"
 )
 

@@ -3,11 +3,11 @@ package server
 import (
 	"bufio"
 	"fmt"
+	"go-study/redis/exception"
+	"go-study/redis/packet"
+	"go-study/redis/snowflake"
 	"io"
 	"os"
-	"ppp/redis/exception"
-	"ppp/redis/packet"
-	"ppp/redis/snowflake"
 	"strconv"
 	"strings"
 )

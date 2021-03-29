@@ -2,7 +2,7 @@ package server
 
 import (
 	"bufio"
-	"ppp/redis/exception"
+	"go-study/redis/exception"
 )
 
 type Reply struct {
