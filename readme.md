@@ -29,3 +29,14 @@
 - [go 语言原本](https://golang.design/under-the-hood/)
 - [深入golang runtime的调度](https://zboya.github.io/post/go_scheduler/)
 - [ppt 分享](https://github.com/yifhao/share)
+
+## 书籍
+
+- [go 101 ](https://go101.org/article/101.html)
+
+```
+go install go101.org/golang101@latest
+golang101
+```
+- go程序设计语言
+- Go语言实战
