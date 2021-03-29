@@ -27,3 +27,5 @@
 - [gocn 专栏/](https://c.gocn.vip/)
 - [Concurrency in Go]()
 - [go 语言原本](https://golang.design/under-the-hood/)
+- [深入golang runtime的调度](https://zboya.github.io/post/go_scheduler/)
+- [ppt 分享](https://github.com/yifhao/share)
