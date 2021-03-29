@@ -20,3 +20,13 @@
 - 对象
 - 复制
 - 一些redis没有的数据结构
+
+## 其他
+
+```
+pprof： http://localhost:1267/debug/pprof/
+```
+
+```
+go tool pprof -http :9090 http://127.0.0.1:1267/debug/pprof/heap
+```

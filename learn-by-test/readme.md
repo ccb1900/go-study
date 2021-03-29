@@ -13,6 +13,8 @@
 - 并发
 - select
 - 反射
+- runtime
+- pprof
 
 ## 构建app
 
