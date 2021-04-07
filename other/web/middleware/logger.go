@@ -26,8 +26,8 @@ func Demo() gin.HandlerFunc {
 		log.Print("demo。。。", c.Request.URL.RawQuery)
 		c.Next()
 		latency := time.Since(t)
-		log.Print("啊，demo。。", latency)
+		log.Print("后置", latency)
 		status := c.Writer.Status()
-		log.Println("啊，demo", status)
+		log.Println("后置o", status)
 	}
 }
