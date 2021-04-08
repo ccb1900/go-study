@@ -33,6 +33,7 @@
 ## 书籍
 
 - [go 101 ](https://go101.org/article/101.html)
+- [go 并发 ](https://www.kancloud.cn/mutouzhang/go)
 
 ```
 go install go101.org/golang101@latest
