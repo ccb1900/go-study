@@ -29,7 +29,8 @@
 - [go 语言原本](https://golang.design/under-the-hood/)
 - [深入golang runtime的调度](https://zboya.github.io/post/go_scheduler/)
 - [ppt 分享](https://github.com/yifhao/share)
-
+- [go 问题](https://golang.design/go-questions/map/principal/)
+- [go 学习笔记](https://github.com/qyuhen/book)
 ## 书籍
 
 - [go 101 ](https://go101.org/article/101.html)
